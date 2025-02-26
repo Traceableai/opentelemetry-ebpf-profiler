@@ -26,7 +26,7 @@ int kprobe_collect_trace(struct pt_regs *ctx)
   return collect_trace(ctx, TRACE_OFF_CPU, pid, tid, ts, 0);
 }
 
-SEC("tracepoint/sched/sched_process_exit")
+SEC("tracepoint/sched/sched_process_exit_new")
 int tp_process_exit() {
   pid_t pid, tgid;
   u64 id = 0;

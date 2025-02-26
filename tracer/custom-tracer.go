@@ -285,12 +285,12 @@ func loadCustomKProbeUnwinders(coll *cebpf.CollectionSpec, ebpfProgs map[string]
 	copy(progs, tailCallProgs)
 	progs = append(progs,
 		progLoaderHelper{
-			name:             "collect_trace",
+			name:             "kprobe_collect_trace",
 			noTailCallTarget: true,
 			enable:           true,
 		},
 		progLoaderHelper{
-			name:             "sched_process_exit",
+			name:             "tp_process_exit",
 			noTailCallTarget: true,
 			enable:           true,
 		},
@@ -518,7 +518,7 @@ func (t *CustomTracer) StartOffCPUProfiling() error {
 	for _, functionName := range functionNames {
 		kprobeSymbol, err := t.kernelSymbols.LookupSymbolByPrefix(functionName)
 		if err != nil {
-			return errors.New("failed to find kernel symbol for finish_task_switch")
+			return errors.New(fmt.Sprintf("failed to find kernel symbol for %s", functionName))
 		}
 		kprobeLink, err := link.Kprobe(string(kprobeSymbol.Name), kprobeProg, nil)
 		if err != nil {

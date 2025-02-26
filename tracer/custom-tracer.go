@@ -511,7 +511,7 @@ func (t *CustomTracer) StartOffCPUProfiling() error {
 		"sys_open",
 		"sys_close",
 	}
-	kprobeProg, ok := t.ebpfProgs["collect_traces"]
+	kprobeProg, ok := t.ebpfProgs["kprobe_collect_trace"]
 	if !ok {
 		return errors.New("off-cpu program collect_traces is not available")
 	}
@@ -527,9 +527,9 @@ func (t *CustomTracer) StartOffCPUProfiling() error {
 		t.hooks[hookPoint{group: "kprobe", name: functionName}] = kprobeLink
 	}
 	// Attach the first hook that enables off-cpu profiling.
-	tpProg, ok := t.ebpfProgs["tracepoint__sched_process_exit"]
+	tpProg, ok := t.ebpfProgs["tp_process_exit"]
 	if !ok {
-		return errors.New("tracepoint__sched_process_exit is not available")
+		return errors.New("tp_process_exit is not available")
 	}
 	tpLink, err := link.Tracepoint("sched", "sched_process_exit", tpProg, nil)
 	if err != nil {

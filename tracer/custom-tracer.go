@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.opentelemetry.io/ebpf-profiler/process"
 	"sync/atomic"
 	"unsafe"
 
@@ -506,10 +507,10 @@ func (t *CustomTracer) loadBpfTrace(raw []byte, cpu int) *host.Trace {
 func (t *CustomTracer) StartOffCPUProfiling() error {
 	// Attach the second hook for off-cpu profiling first.
 	functionNames := []string{
-		"sys_read",
-		"sys_write",
-		"sys_open",
-		"sys_close",
+		"__x64_sys_read",
+		"__x64_sys_write",
+		"__x64_sys_open",
+		"__x64_sys_close",
 	}
 	kprobeProg, ok := t.ebpfProgs["kprobe_collect_trace"]
 	if !ok {
@@ -546,6 +547,7 @@ func (t *CustomTracer) TraceProcessor() tracehandler.TraceProcessor {
 }
 
 func (t *CustomTracer) AddPidToTrack(pid int) {
+	t.processManager.SynchronizeProcess(process.New(libpf.PID(pid)))
 	pidMap, ok := t.ebpfMaps["pid_map"]
 	if !ok {
 		fmt.Printf("pid_map not found in ebpf maps")

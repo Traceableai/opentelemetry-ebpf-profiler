@@ -719,6 +719,7 @@ static inline int collect_trace(
     }
     return 0;
   }
+  printt("inside collect_trace - pid information exist");
   error = get_next_unwinder_after_native_frame(record, &unwinder);
 
 exit:

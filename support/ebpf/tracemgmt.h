@@ -690,7 +690,7 @@ static inline int collect_trace(
   if (!record) {
     return -1;
   }
-
+  printt("inside collect_trace");
   Trace *trace   = &record->trace;
   trace->origin  = origin;
   trace->pid     = pid;
@@ -704,7 +704,7 @@ static inline int collect_trace(
   // Get the kernel mode stack trace first
   trace->kernel_stack_id = bpf_get_stackid(ctx, &kernel_stackmap, BPF_F_REUSE_STACKID);
   DEBUG_PRINT("kernel stack id = %d", trace->kernel_stack_id);
-
+  printt("inside collect_trace- getting usermode_args");
   // Recursive unwind frames
   int unwinder           = PROG_UNWIND_STOP;
   bool has_usermode_regs = false;
@@ -712,7 +712,7 @@ static inline int collect_trace(
   if (error || !has_usermode_regs) {
     goto exit;
   }
-
+  printt("inside collect_trace - checking pid information exist");
   if (!pid_information_exists(ctx, pid)) {
     if (report_pid(ctx, pid, RATELIMIT_ACTION_DEFAULT)) {
       increment_metric(metricID_NumProcNew);
@@ -724,7 +724,7 @@ static inline int collect_trace(
 exit:
   record->state.unwind_error = error;
   tail_call(ctx, unwinder);
-  DEBUG_PRINT("bpf_tail call failed for %d in native_tracer_entry", unwinder);
+  printt("bpf_tail call failed for %d in native_tracer_entry", unwinder);
   return -1;
 }
 

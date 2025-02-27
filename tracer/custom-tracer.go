@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/cilium/ebpf/perf"
+	"go.opentelemetry.io/ebpf-profiler/periodiccaller"
 	"go.opentelemetry.io/ebpf-profiler/process"
 	"os"
 	"sync/atomic"
@@ -561,6 +562,9 @@ func (t *CustomTracer) AddPidToTrack(pid int) {
 		fmt.Printf("Failed to put pid %v into ebpf map: %v", pid, err)
 		return
 	}
+	periodiccaller.Start(context.Background(), 10*time.Second, func() {
+		t.processManager.SynchronizeProcess(process.New(libpf.PID(pid)))
+	})
 }
 
 // startTraceEventMonitor spawns a goroutine that receives trace events from

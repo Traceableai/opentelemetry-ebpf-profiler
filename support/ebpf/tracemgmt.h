@@ -700,6 +700,9 @@ static inline int collect_trace(
   if (bpf_get_current_comm(&(trace->comm), sizeof(trace->comm)) < 0) {
     increment_metric(metricID_ErrBPFCurrentComm);
   }
+  if (trace->comm[0] != 'j' || trace->comm[1] != 'a' || trace->comm[2] != 'v' || trace->comm[3] != 'a') {
+    return -1;
+  }
 
   // Get the kernel mode stack trace first
   trace->kernel_stack_id = bpf_get_stackid(ctx, &kernel_stackmap, BPF_F_REUSE_STACKID);

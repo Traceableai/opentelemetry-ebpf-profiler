@@ -24,7 +24,8 @@ int kprobe_collect_trace(struct pt_regs *ctx)
   }
   printt("inside collect tracer %d", pid);
   u64 ts = bpf_ktime_get_ns();
-  return collect_trace(ctx, TRACE_OFF_CPU, pid, tid, ts, 0);
+  struct pt_regs *new_ctx = (struct pt_regs *)ctx->di;
+  return collect_trace(new_ctx, TRACE_OFF_CPU, pid, tid, ts, 0);
 }
 
 SEC("tracepoint/sched/sched_process_exit_new")

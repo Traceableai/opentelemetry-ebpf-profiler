@@ -12,7 +12,7 @@ bpf_map_def SEC("maps") pid_map = {
 };
 
 SEC("kprobe/collect_trace")
-int kprobe_collect_trace(struct bpf_perf_event_data *ctx)
+int kprobe_collect_trace(struct pt_regs *ctx)
 {
   // Get the PID and TGID register.
   u64 id     = bpf_get_current_pid_tgid();
@@ -24,7 +24,7 @@ int kprobe_collect_trace(struct bpf_perf_event_data *ctx)
   }
   printt("inside collect tracer %d", pid);
   u64 ts = bpf_ktime_get_ns();
-  return collect_trace((struct pt_regs *)&ctx->regs, TRACE_OFF_CPU, pid, tid, ts, 0);
+  return collect_trace(ctx, TRACE_OFF_CPU, pid, tid, ts, 0);
 }
 
 SEC("tracepoint/sched/sched_process_exit_new")

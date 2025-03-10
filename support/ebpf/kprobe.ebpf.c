@@ -29,7 +29,7 @@ int BPF_KPROBE(kprobe_collect_trace)
   }
   printt("inside collect tracer kprobe %d", pid);
   u64 ts = bpf_ktime_get_ns();
-  return collect_trace(PT_REGS_SYSCALL_REGS(ctx), TRACE_OFF_CPU, pid, tid, ts, 0);
+  return collect_trace(ctx, PT_REGS_SYSCALL_REGS(ctx), TRACE_OFF_CPU, pid, tid, ts, 0);
 }
 
 SEC("tracepoint/sched/sched_process_exit_new")

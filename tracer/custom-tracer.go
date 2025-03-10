@@ -525,6 +525,7 @@ func (t *CustomTracer) StartOffCPUProfiling() error {
 		if err != nil {
 			return errors.New(fmt.Sprintf("failed to find kernel symbol for %s", functionName))
 		}
+		fmt.Printf("kprobe_symbol: %v\n", kprobeSymbol)
 		kprobeLink, err := link.Kprobe(string(kprobeSymbol.Name), kprobeProg, nil)
 		if err != nil {
 			return err

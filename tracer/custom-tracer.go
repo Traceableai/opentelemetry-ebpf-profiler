@@ -521,11 +521,10 @@ func (t *CustomTracer) StartOffCPUProfiling() error {
 		return errors.New("off-cpu program collect_traces is not available")
 	}
 	for _, functionName := range functionNames {
-		kprobeSymbol, err := t.kernelSymbols.LookupSymbolByPrefix(functionName)
+		kprobeSymbol, err := t.kernelSymbols.LookupSymbol(libpf.SymbolName(functionName))
 		if err != nil {
 			return errors.New(fmt.Sprintf("failed to find kernel symbol for %s", functionName))
 		}
-		fmt.Printf("kprobe_symbol: %v\n", kprobeSymbol)
 		kprobeLink, err := link.Kprobe(string(kprobeSymbol.Name), kprobeProg, nil)
 		if err != nil {
 			return err

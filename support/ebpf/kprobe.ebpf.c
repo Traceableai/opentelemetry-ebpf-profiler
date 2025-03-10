@@ -22,7 +22,7 @@ int kprobe_collect_trace(struct pt_regs *ctx)
   if (exist == 0) {
     return 0;
   }
-  printt("inside collect tracer %d", pid);
+  printt("inside collect tracer kprobe %d", pid);
   u64 ts = bpf_ktime_get_ns();
   return collect_trace(ctx, TRACE_OFF_CPU, pid, tid, ts, 0);
 }

@@ -3,6 +3,11 @@
 #include "stackdeltatypes.h"
 #include "tracemgmt.h"
 #include "types.h"
+#ifndef __TARGET_ARCH_x86
+#define __TARGET_ARCH_x86
+#define __KERNEL__
+#endif
+#include "headers/bpf_tracing.h"
 
 bpf_map_def SEC("maps") pid_map = {
   .type        = BPF_MAP_TYPE_HASH,
@@ -12,7 +17,7 @@ bpf_map_def SEC("maps") pid_map = {
 };
 
 SEC("kprobe/collect_trace")
-int kprobe_collect_trace(struct pt_regs *ctx)
+int BPF_KPROBE(kprobe_collect_trace)
 {
   // Get the PID and TGID register.
   u64 id     = bpf_get_current_pid_tgid();
@@ -24,7 +29,7 @@ int kprobe_collect_trace(struct pt_regs *ctx)
   }
   printt("inside collect tracer kprobe %d", pid);
   u64 ts = bpf_ktime_get_ns();
-  return collect_trace(ctx, TRACE_OFF_CPU, pid, tid, ts, 0);
+  return collect_trace(PT_REGS_SYSCALL_REGS(ctx), TRACE_OFF_CPU, pid, tid, ts, 0);
 }
 
 SEC("tracepoint/sched/sched_process_exit_new")

@@ -516,7 +516,7 @@ func (t *CustomTracer) StartOffCPUProfiling() error {
 		"__x64_sys_open",
 		"__x64_sys_close",
 	}
-	kprobeProg, ok := t.ebpfProgs["kprobe_collect_trace"]
+	kprobeProg, ok := t.ebpfProgs["native_tracer_entry"]
 	if !ok {
 		return errors.New("off-cpu program collect_traces is not available")
 	}

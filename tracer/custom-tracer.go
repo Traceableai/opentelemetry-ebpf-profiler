@@ -290,7 +290,7 @@ func loadCustomKProbeUnwinders(coll *cebpf.CollectionSpec, ebpfProgs map[string]
 	copy(progs, tailCallProgs)
 	progs = append(progs,
 		progLoaderHelper{
-			name:             "native_tracer_entry",
+			name:             "kprobe_collect_trace",
 			noTailCallTarget: true,
 			enable:           true,
 		},
@@ -516,7 +516,7 @@ func (t *CustomTracer) StartOffCPUProfiling() error {
 		"__x64_sys_open",
 		"__x64_sys_close",
 	}
-	kprobeProg, ok := t.ebpfProgs["native_tracer_entry"]
+	kprobeProg, ok := t.ebpfProgs["kprobe_collect_trace"]
 	if !ok {
 		return errors.New("off-cpu program collect_traces is not available")
 	}

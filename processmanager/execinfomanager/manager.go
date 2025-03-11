@@ -367,6 +367,7 @@ func (state *executableInfoManagerState) loadDeltas(
 	fileID host.FileID,
 	deltas []sdtypes.StackDelta,
 ) (ref mapRef, gaps []util.Range, err error) {
+	fmt.Printf("Loading deltas for %v (%#016x)\n", fileID, fileID)
 	numDeltas := len(deltas)
 	if numDeltas == 0 {
 		// If no deltas are extracted, cache the result but don't reserve memory in BPF maps.
@@ -415,7 +416,7 @@ func (state *executableInfoManagerState) loadDeltas(
 		})
 		numDeltasPerPage[(delta.Address>>support.StackDeltaPageBits)-firstPage]++
 	}
-
+	fmt.Printf("Loading deltas for %v delats %v\n", fileID, ebpfDeltas)
 	// Update data to eBPF
 	mapID, err := state.ebpf.UpdateExeIDToStackDeltas(fileID, ebpfDeltas)
 	if err != nil {
@@ -423,9 +424,12 @@ func (state *executableInfoManagerState) loadDeltas(
 			fmt.Errorf("failed UpdateExeIDToStackDeltas for FileID %x: %v", fileID, err)
 	}
 
+	fmt.Printf("Loaded deltas for %v numDeltasPerPage %v mapID %v firstPageAddr %v\n",
+		fileID, numDeltasPerPage, mapID, firstPageAddr)
 	// Update stack delta pages
 	if err = state.ebpf.UpdateStackDeltaPages(fileID, numDeltasPerPage, mapID,
 		firstPageAddr); err != nil {
+		fmt.Printf("Failed to update stack deltas: %v", err)
 		_ = state.ebpf.DeleteExeIDToStackDeltas(fileID, ref.MapID)
 		return mapRef{}, nil,
 			fmt.Errorf("failed UpdateStackDeltaPages for FileID %x: %v", fileID, err)

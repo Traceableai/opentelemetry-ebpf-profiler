@@ -632,9 +632,11 @@ get_usermode_regs(struct pt_regs *ctx, UnwindState *state, bool *has_usermode_re
   ErrorCode error;
 
   if (!ptregs_is_usermode(ctx)) {
+    printt("regs are not usermode");
     u32 key              = 0;
     SystemConfig *syscfg = bpf_map_lookup_elem(&system_config, &key);
     if (!syscfg) {
+       printt("sysconfig not found");
       // Unreachable: array maps are always fully initialized.
       return ERR_UNREACHABLE;
     }
@@ -650,6 +652,7 @@ get_usermode_regs(struct pt_regs *ctx, UnwindState *state, bool *has_usermode_re
     }
 
     if (!ptregs_is_usermode(&regs)) {
+      printt("regs are not usermode2");
       // No usermode registers context found.
       return ERR_OK;
     }
@@ -711,7 +714,7 @@ static inline int collect_trace(
   // Recursive unwind frames
   int unwinder           = PROG_UNWIND_STOP;
   bool has_usermode_regs = false;
-  ErrorCode error        = get_usermode_regs(ctx, &record->state, &has_usermode_regs);
+  ErrorCode error        = get_usermode_regs(reg, &record->state, &has_usermode_regs);
   if (error || !has_usermode_regs) {
     goto exit;
   }

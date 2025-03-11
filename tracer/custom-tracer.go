@@ -290,7 +290,7 @@ func loadCustomKProbeUnwinders(coll *cebpf.CollectionSpec, ebpfProgs map[string]
 	copy(progs, tailCallProgs)
 	progs = append(progs,
 		progLoaderHelper{
-			name:             "kprobe_collect_trace",
+			name:             "native_tracer_entry",
 			noTailCallTarget: true,
 			enable:           true,
 		},

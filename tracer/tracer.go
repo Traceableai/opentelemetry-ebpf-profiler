@@ -1297,7 +1297,7 @@ func (t *Tracer) StartOffCPUProfiling() error {
 		return errors.New("off-cpu program finish_task_switch is not available")
 	}
 
-	kprobeSymbol, err := t.kernelSymbols.LookupSymbolByPrefix("finish_task_switch")
+	kprobeSymbol, err := t.kernelSymbols.LookupSymbol("finish_task_switch.isra.0")
 	if err != nil {
 		return errors.New("failed to find kernel symbol for finish_task_switch")
 	}

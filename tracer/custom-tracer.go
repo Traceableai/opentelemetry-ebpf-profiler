@@ -300,11 +300,6 @@ func loadCustomKProbeUnwinders(coll *cebpf.CollectionSpec, ebpfProgs map[string]
 			enable:           true,
 		},
 		progLoaderHelper{
-			name:             "tracepoint__sched_switch",
-			noTailCallTarget: true,
-			enable:           true,
-		},
-		progLoaderHelper{
 			name:             "finish_task_switch",
 			noTailCallTarget: true,
 			enable:           true,

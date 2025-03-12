@@ -627,7 +627,7 @@ static inline bool ptregs_is_usermode(struct pt_regs *regs)
 // context was found: not every thread that we interrupt will actually have
 // a user-mode context (e.g. kernel worker threads won't).
 static inline ErrorCode
-get_usermode_regs(struct pt_regs *ctx, UnwindState *state, bool *has_usermode_regs)
+get_usermode_regs(struct pt_regs *ctx, UnwindState *state, bool *has_usermode_regs, struct task_struct * task)
 {
   ErrorCode error;
 
@@ -642,7 +642,7 @@ get_usermode_regs(struct pt_regs *ctx, UnwindState *state, bool *has_usermode_re
     }
 
     // Use the current task's entry pt_regs
-    struct task_struct *task = (struct task_struct *)bpf_get_current_task();
+//    struct task_struct *task = task;
     long ptregs_addr         = get_task_pt_regs(task, syscfg);
 
     struct pt_regs regs;
@@ -714,7 +714,62 @@ static inline int collect_trace(
   // Recursive unwind frames
   int unwinder           = PROG_UNWIND_STOP;
   bool has_usermode_regs = false;
-  ErrorCode error        = get_usermode_regs(ctx, &record->state, &has_usermode_regs);
+  struct task_struct *task = (struct task_struct *)bpf_get_current_task();
+  ErrorCode error        = get_usermode_regs(ctx, &record->state, &has_usermode_regs, task);
+  if (error || !has_usermode_regs) {
+    goto exit;
+  }
+  printt("inside collect_trace - checking pid information exist");
+  if (!pid_information_exists(ctx, pid)) {
+    if (report_pid(ctx, pid, RATELIMIT_ACTION_DEFAULT)) {
+      increment_metric(metricID_NumProcNew);
+    }
+    return 0;
+  }
+  printt("inside collect_trace - pid information exist");
+  error = get_next_unwinder_after_native_frame(record, &unwinder);
+
+exit:
+  record->state.unwind_error = error;
+  tail_call(ctx, unwinder);
+  printt("bpf_tail call failed for %d in native_tracer_entry", unwinder);
+  return -1;
+}
+
+
+
+static inline int collect_trace2(
+  struct pt_regs *ctx, TraceOrigin origin, u32 pid, u32 tid, u64 trace_timestamp, u64 off_cpu_time, struct task_struct * task)
+{
+  // The trace is reused on each call to this function so we have to reset the
+  // variables used to maintain state.
+  DEBUG_PRINT("Resetting CPU record2");
+  PerCPURecord *record = get_pristine_per_cpu_record();
+  if (!record) {
+    return -1;
+  }
+  printt("inside collect_trace2");
+  Trace *trace   = &record->trace;
+  trace->origin  = origin;
+  trace->pid     = pid;
+  trace->tid     = tid;
+  trace->ktime   = trace_timestamp;
+  trace->offtime = off_cpu_time;
+  if (bpf_get_current_comm(&(trace->comm), sizeof(trace->comm)) < 0) {
+    increment_metric(metricID_ErrBPFCurrentComm);
+  }
+//  if (trace->comm[0] != 'j' || trace->comm[1] != 'a' || trace->comm[2] != 'v' || trace->comm[3] != 'a') {
+//    return -1;
+//  }
+
+  // Get the kernel mode stack trace first
+  trace->kernel_stack_id = bpf_get_stackid(ctx, &kernel_stackmap, BPF_F_REUSE_STACKID);
+  DEBUG_PRINT("kernel stack id = %d", trace->kernel_stack_id);
+  printt("inside collect_trace- getting usermode_args");
+  // Recursive unwind frames
+  int unwinder           = PROG_UNWIND_STOP;
+  bool has_usermode_regs = false;
+  ErrorCode error        = get_usermode_regs(ctx, &record->state, &has_usermode_regs, task);
   if (error || !has_usermode_regs) {
     goto exit;
   }

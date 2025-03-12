@@ -63,7 +63,7 @@ int dummy(struct pt_regs *ctx)
 // kp__finish_task_switch is triggered right after the scheduler updated
 // the CPU registers.
 SEC("kprobe/finish_task_switch")
-int finish_task_switch(struct pt_regs *ctx)
+int finish_task_switch(struct pt_regs *ctx, struct task_struct *task)
 {
   // Get the PID and TGID register.
   u64 pid_tgid = bpf_get_current_pid_tgid();
@@ -85,5 +85,5 @@ int finish_task_switch(struct pt_regs *ctx)
   u64 diff = ts - *start_ts;
   DEBUG_PRINT("==== finish_task_switch ====");
 
-  return collect_trace(ctx, TRACE_OFF_CPU, pid, tid, ts, diff);
+  return collect_trace2(ctx, TRACE_OFF_CPU, pid, tid, ts, diff, task);
 }

@@ -11,21 +11,21 @@ bpf_map_def SEC("maps") pid_map = {
   .max_entries = 1024,
 };
 
-SEC("kprobe/collect_trace")
-int kprobe_collect_trace(struct bpf_perf_event_data *ctx)
-{
-  // Get the PID and TGID register.
-  u64 id  = bpf_get_current_pid_tgid();
-  u32 pid = id >> 32;
-  u32 tid = id & 0xFFFFFFFF;
-
-  if (pid == 0) {
-    return 0;
-  }
-
-  u64 ts = bpf_ktime_get_ns();
-  return collect_trace((struct pt_regs *)&ctx->regs, TRACE_SAMPLING, pid, tid, ts, 0);
-}
+//SEC("kprobe/collect_trace")
+//int kprobe_collect_trace(struct bpf_perf_event_data *ctx)
+//{
+//  // Get the PID and TGID register.
+//  u64 id  = bpf_get_current_pid_tgid();
+//  u32 pid = id >> 32;
+//  u32 tid = id & 0xFFFFFFFF;
+//
+//  if (pid == 0) {
+//    return 0;
+//  }
+//
+//  u64 ts = bpf_ktime_get_ns();
+//  return collect_trace((struct pt_regs *)&ctx->regs, TRACE_SAMPLING, pid, tid, ts, 0);
+//}
 
 SEC("tracepoint/sched/sched_process_exit_new")
 int tp_process_exit() {

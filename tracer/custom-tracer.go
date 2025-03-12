@@ -299,6 +299,16 @@ func loadCustomKProbeUnwinders(coll *cebpf.CollectionSpec, ebpfProgs map[string]
 			noTailCallTarget: true,
 			enable:           true,
 		},
+		progLoaderHelper{
+			name:             "tracepoint__sched_switch",
+			noTailCallTarget: true,
+			enable:           true,
+		},
+		progLoaderHelper{
+			name:             "finish_task_switch",
+			noTailCallTarget: true,
+			enable:           true,
+		},
 	)
 	for _, unwindProg := range progs {
 		if !unwindProg.enable {

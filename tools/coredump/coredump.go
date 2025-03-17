@@ -67,6 +67,7 @@ func (c *symbolizationCache) FrameKnown(frameID libpf.FrameID) bool {
 }
 
 func (c *symbolizationCache) FrameMetadata(args *reporter.FrameMetadataArgs) {
+	log.Printf("frame metadta %v", args)
 	c.symbols[args.FrameID] = args
 }
 

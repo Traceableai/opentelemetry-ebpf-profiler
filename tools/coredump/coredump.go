@@ -196,35 +196,43 @@ func ExtractTraces(ctx context.Context, pr process.Process, debug bool,
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Interpreter manager: %v", err)
 	}
-
-	manager.SynchronizeProcess(pr)
-
 	info := make([]ThreadInfo, 0, len(threadInfo))
-	for _, thread := range threadInfo {
-		if len(lwpFilter) > 0 {
-			if _, exists := lwpFilter[libpf.PID(thread.LWP)]; !exists {
-				continue
-			}
-		}
+	for {
+		manager.SynchronizeProcess(pr)
 
-		// Get traces by calling ebpf code via CGO
-		ebpfCtx.resetTrace()
-		if rc := C.unwind_traces(ebpfCtx.PIDandTGID, debugFlag, C.u64(thread.TPBase),
-			unsafe.Pointer(&thread.GPRegs[0])); rc != 0 {
-			return nil, fmt.Errorf("failed to unwind lwp %v: %v", thread.LWP, rc)
-		}
-		// Symbolize traces with interpreter manager
-		trace := manager.ConvertTrace(&ebpfCtx.trace)
-		tinfo := ThreadInfo{LWP: thread.LWP}
-		for i := range trace.FrameTypes {
-			frame, err := symCache.symbolize(trace.FrameTypes[i], trace.Files[i], trace.Linenos[i])
-			if err != nil {
-				return nil, err
+		info = make([]ThreadInfo, 0, len(threadInfo))
+		for _, thread := range threadInfo {
+			if len(lwpFilter) > 0 {
+				if _, exists := lwpFilter[libpf.PID(thread.LWP)]; !exists {
+					continue
+				}
 			}
-			tinfo.Frames = append(tinfo.Frames, frame)
+
+			// Get traces by calling ebpf code via CGO
+			ebpfCtx.resetTrace()
+			if rc := C.unwind_traces(ebpfCtx.PIDandTGID, debugFlag, C.u64(thread.TPBase),
+				unsafe.Pointer(&thread.GPRegs[0])); rc != 0 {
+				return nil, fmt.Errorf("failed to unwind lwp %v: %v", thread.LWP, rc)
+			}
+			// Symbolize traces with interpreter manager
+			trace := manager.ConvertTrace(&ebpfCtx.trace)
+			tinfo := ThreadInfo{LWP: thread.LWP}
+			for i := range trace.FrameTypes {
+				frame, err := symCache.symbolize(trace.FrameTypes[i], trace.Files[i], trace.Linenos[i])
+				if err != nil {
+					return nil, err
+				}
+				tinfo.Frames = append(tinfo.Frames, frame)
+			}
+			info = append(info, tinfo)
 		}
-		info = append(info, tinfo)
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		enc.SetEscapeHTML(false)
+		if err := enc.Encode(info); err != nil {
+			log.Printf("JSON Marshall failed: %w", err)
+			break
+		}
 	}
-
 	return info, nil
 }

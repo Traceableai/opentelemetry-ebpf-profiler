@@ -198,6 +198,10 @@ func ExtractTraces(ctx context.Context, pr process.Process, debug bool,
 	}
 	info := make([]ThreadInfo, 0, len(threadInfo))
 	for {
+		threadInfo, err = pr.GetThreads()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get thread info for process %d: %v", pid, err)
+		}
 		manager.SynchronizeProcess(pr)
 
 		info = make([]ThreadInfo, 0, len(threadInfo))

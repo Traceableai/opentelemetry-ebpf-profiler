@@ -589,6 +589,7 @@ func (d *hotspotData) newVMData(rm remotememory.RemoteMemory, bias libpf.Address
 	// Check that all symbols got loaded from JVM introspection data
 	err := forEachItem("", reflect.ValueOf(&vmd.vmStructs).Elem(),
 		func(item reflect.Value, name string) error {
+			log.Printf("name %s", name)
 			switch item.Kind() {
 			case reflect.Uint, reflect.Uint64, reflect.Uintptr:
 				if item.Uint() != ^uint64(0) {

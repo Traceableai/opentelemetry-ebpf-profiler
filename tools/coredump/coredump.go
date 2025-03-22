@@ -8,6 +8,7 @@ import (
 	"debug/elf"
 	"encoding/json"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"runtime"
 	"time"
@@ -50,11 +51,13 @@ func newSymbolizationCache() *symbolizationCache {
 }
 
 func (c *symbolizationCache) ExecutableKnown(fileID libpf.FileID) bool {
+	log.Printf("executing symbolization cache for %s", fileID)
 	_, exists := c.files[fileID]
 	return exists
 }
 
 func (c *symbolizationCache) ExecutableMetadata(args *reporter.ExecutableMetadataArgs) {
+	log.Printf("executing symbolization cache for %s %s", args.FileID, args.FileName)
 	c.files[args.FileID] = args.FileName
 }
 

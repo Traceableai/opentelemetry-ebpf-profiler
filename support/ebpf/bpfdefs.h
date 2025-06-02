@@ -131,7 +131,7 @@ static long (*bpf_probe_read_kernel)(void *dst, int size, const void *unsafe_ptr
         }                                                                                          \
       })
   #else
-    #define DEBUG_PRINT(fmt, ...)
+    #define DEBUG_PRINT(fmt, ...) printt(fmt, ##__VA_ARGS__);
     #define DEBUG_CAPTURE_COREDUMP()
     #define DEBUG_CAPTURE_COREDUMP_IF_TGID(tgid)
   #endif
@@ -143,5 +143,7 @@ static long (*bpf_probe_read_kernel)(void *dst, int size, const void *unsafe_ptr
       __attribute__((section(name), used)) _Pragma("GCC diagnostic pop")
 
 #endif // !TESTING_COREDUMP
+
+
 
 #endif // OPTI_BPFDEFS_H

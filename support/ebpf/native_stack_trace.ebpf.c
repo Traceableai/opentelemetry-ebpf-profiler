@@ -660,8 +660,9 @@ int native_tracer_entry(struct bpf_perf_event_data *ctx)
   if (pid == 0) {
     return 0;
   }
-
+  DEBUG_PRINT("tracing pid %u tid %u", pid, tid);
   if (!should_track_process(pid)) {
+    DEBUG_PRINT("skipping pid %u", pid);
     return 0;
   }
 

@@ -90,7 +90,7 @@ bpf_map_def SEC("maps") kernel_stackmap = {
 
 static EBPF_INLINE bool should_track_process(u32 pid) {
   u32 *p = bpf_map_lookup_elem(&pids, &pid);
-  return p != NULL && *p != 0;
+  return p != NULL;
 }
 
 // Record a native frame

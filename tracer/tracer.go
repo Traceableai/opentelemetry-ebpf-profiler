@@ -1340,3 +1340,17 @@ func (t *Tracer) StartOffCPUProfiling() error {
 func (t *Tracer) TraceProcessor() tracehandler.TraceProcessor {
 	return t.processManager
 }
+
+func (t *Tracer) AddProcessToTrack(pid uint32) error {
+	if pidMap, ok := t.ebpfMaps["pids"]; ok {
+		return pidMap.Put(pid, uint32(0))
+	}
+	return errors.New("pids map is not available")
+}
+
+func (t *Tracer) RemoveProcessToTrack(pid uint32) error {
+	if pidMap, ok := t.ebpfMaps["pids"]; ok {
+		return pidMap.Delete(pid)
+	}
+	return errors.New("pids map is not available")
+}

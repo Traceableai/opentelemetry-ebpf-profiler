@@ -63,6 +63,13 @@ bpf_map_def SEC("maps") interpreter_offsets = {
   .max_entries = 32,
 };
 
+bpf_map_def SEC("maps") pids = {
+  .type        = BPF_MAP_TYPE_HASH,
+  .key_size    = sizeof(u32),
+  .value_size  = sizeof(u32),
+  .max_entries = 8096,
+};
+
 // Maps fileID and page to information of stack deltas associated with that page.
 bpf_map_def SEC("maps") stack_delta_page_to_info = {
   .type        = BPF_MAP_TYPE_HASH,
@@ -80,6 +87,11 @@ bpf_map_def SEC("maps") kernel_stackmap = {
   .value_size  = PERF_MAX_STACK_DEPTH * sizeof(u64),
   .max_entries = 16 * 1024,
 };
+
+static EBPF_INLINE bool should_track_process(u32 pid) {
+  u32 *p = bpf_map_lookup_elem(&pids, &pid);
+  return p != NULL && *p != 0;
+}
 
 // Record a native frame
 static EBPF_INLINE ErrorCode push_native(Trace *trace, u64 file, u64 line, bool return_address)
@@ -646,6 +658,10 @@ int native_tracer_entry(struct bpf_perf_event_data *ctx)
   u32 tid = id & 0xFFFFFFFF;
 
   if (pid == 0) {
+    return 0;
+  }
+
+  if (!should_track_process(pid)) {
     return 0;
   }
 
